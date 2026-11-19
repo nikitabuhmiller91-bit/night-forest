@@ -72,7 +72,7 @@
     <div class="vrow"><div class="vlabel"><span>ВЫНОСЛИВОСТЬ</span><span id="stTxt">100</span></div><div class="bar" id="stBar"><div></div></div></div>
     <div class="vrow"><div class="vlabel"><span>ФОНАРИК</span><span id="batTxt">100</span></div><div class="bar" id="batBar"><div></div></div></div>
     <div class="vrow" id="sawRow" style="display:none"><div class="vlabel"><span>БЕНЗОПИЛА</span><span id="sawTxt">0%</span></div><div class="bar" id="sawBar"><div></div></div></div>
-    <div id="toolLine">1 👊 руки &nbsp; 2 🪓 <span id="toolAxe">—</span> &nbsp; 3 ⛓ <span id="toolSaw">—</span></div>
+    <div id="toolLine">1 👊 руки &nbsp; 2 🪓 <span id="toolAxe">—</span> &nbsp; 3 ⛓ <span id="toolSaw">—</span> &nbsp; 4 🔫 ∞</div>
     <div id="invLine">🪵 Дрова: <b id="woodTxt">0</b> &nbsp; ⛽ Канистры: <b id="cansTxt">0</b><br>🔧 Ключи: <b id="wrenchTxt">0</b> &nbsp; 🪓 Топоры: <b id="axesTxt">0</b> &nbsp; ⛓ Пилы: <b id="sawsTxt">0</b></div>
   </div>
   <div id="stats" class="panel">
@@ -82,6 +82,7 @@
     <div>убито: <b id="killsEl">0</b></div>
     <div>рекорд: <b id="bestEl">0:00</b></div>
     <div style="color:#e57373">тварей рядом: <b id="mNearEl">0</b></div>
+    <div id="dayEl">🌙 НОЧЬ</div>
   </div>
   <div id="bossWrap"><div class="vlabel">💤 ХОЗЯИН ЛЕСА</div><div class="bar" id="bossBar"><div></div></div></div>
   <div id="vehicle" class="panel">
@@ -105,6 +106,7 @@
     <b>WASD</b> — движение · <b>Shift</b> — бег · <b>мышь</b> — обзор · <b>ЛКМ</b> — рубить/резать/бить<br>
     <b>F</b> — фонарик (твари боятся света) · <b>E</b> — транспорт / починить велик · <b>G</b> — канистра<br>
     <b>1/2/3</b> — руки / топор 🪓 / бензопила ⛓ (пила жрёт бензин из канистр)<br>
+    <b>4</b> — 🔫 РЕВОЛЬВЕР — бесконечные патроны, ЛКМ — выстрел<br>
     <b>B</b> — костёр из 3 дров 🔥 (твари его боятся) · <b>H</b> — гудок (отгоняет тварей)<br>
     В машине: <b>W/S</b> — газ/тормоз, <b>A/D</b> — руль, <b>Space</b> — ручник (ДРИФТ!)
   </div>
@@ -144,11 +146,12 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
-scene.add(new THREE.HemisphereLight(0x2a3d55, 0x050a06, 0.5));
+const hemi = new THREE.HemisphereLight(0x2a3d55, 0x050a06, 0.5);
+scene.add(hemi);
 const moonLight = new THREE.DirectionalLight(0x9db4d8, 0.3);
 moonLight.position.set(60, 120, 40);
 scene.add(moonLight);
-{
+const stars = (() => {
   const n = 800, pos = new Float32Array(n*3);
   for (let i = 0; i < n; i++) {
     const a = Math.random()*Math.PI*2, e = Math.random()*Math.PI*0.48, r = 420;
@@ -156,12 +159,13 @@ scene.add(moonLight);
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color:0xcfd8ff, size:1.6, sizeAttenuation:false, fog:false })));
-}
-{
-  const moon = new THREE.Mesh(new THREE.CircleGeometry(18, 32), new THREE.MeshBasicMaterial({ color:0xe8ecf5, fog:false }));
-  moon.position.set(240, 180, -320); moon.lookAt(0,0,0); scene.add(moon);
-}
+  return new THREE.Points(g, new THREE.PointsMaterial({ color:0xcfd8ff, size:1.6, sizeAttenuation:false, fog:false }));
+})();
+scene.add(stars);
+const moon = new THREE.Mesh(new THREE.CircleGeometry(18, 32), new THREE.MeshBasicMaterial({ color:0xe8ecf5, fog:false }));
+moon.position.set(240, 180, -320); moon.lookAt(0,0,0); scene.add(moon);
+const sun = new THREE.Mesh(new THREE.CircleGeometry(24, 32), new THREE.MeshBasicMaterial({ color:0xffc46b, fog:false }));
+sun.position.set(-260, 150, 260); sun.lookAt(0,0,0); scene.add(sun);
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(900, 900),
   new THREE.MeshStandardMaterial({ color:0x11220f, roughness:1 })
@@ -219,6 +223,7 @@ const treeFallSnd = () => { noiseFx(0.8, 300, 0.4); tone(60,0.7,'sawtooth',0.25)
 const monsterDieS = () => { tone(200,0.35,'sawtooth',0.25); tone(90,0.5,'sawtooth',0.2,0.1); };
 const growlSnd    = () => tone(rand(70,110), 0.5, 'sawtooth', 0.18);
 const hornSound   = () => { tone(400,0.35,'square',0.25); tone(505,0.35,'square',0.2); };
+const gunSound    = () => { tone(160,0.07,'square',0.35); tone(70,0.14,'sawtooth',0.25,0.02); noiseFx(0.09, 3200, 0.22); };
 const heartbeat   = () => { tone(50,0.12,'sine',0.4); tone(45,0.14,'sine',0.35,0.18); };
 
 // ============================== SEEDED CHUNKS ==============================
@@ -618,6 +623,7 @@ addEventListener('keydown', e => {
   if (e.code === 'Digit1') { S.tool = 'none'; }
   if (e.code === 'Digit2') { if (S.axes > 0) S.tool = 'axe'; else toast('Нет топора 🪓 — ищи в домах'); }
   if (e.code === 'Digit3') { if (S.saws > 0) S.tool = 'saw'; else toast('Нет бензопилы ⛓ — ищи в домах'); }
+  if (e.code === 'Digit4') S.tool = 'gun';
 });
 addEventListener('keyup', e => keys[e.code] = false);
 addEventListener('mousedown', e => { if (e.button === 0) S.held = true; });
@@ -882,6 +888,20 @@ function nearestMonsterAhead() {
   }
   return best;
 }
+function shootTarget() {
+  let best = null, bd = 60;
+  camForwardXZ();
+  const fx = fwdV.x, fz = fwdV.z;
+  for (const m of monsters) {
+    if (m.dying !== undefined) continue;
+    const dx = m.pos.x - player.pos.x, dz = m.pos.z - player.pos.z;
+    const d = Math.hypot(dx, dz);
+    if (d > bd) continue;
+    if ((dx*fx + dz*fz)/(d || 1) < 0.985) continue;
+    bd = d; best = m;
+  }
+  return best;
+}
 function spawnLoose(type, x, z) {
   const id = 'ls_' + Math.random().toString(36).slice(2);
   const mesh = makeItemMesh(type);
@@ -941,6 +961,15 @@ function updateTools(dt) {
         if (t) { t.hp -= 3.4; if (t.hp <= 0) fellTree(t); }
       }
     }
+  } else if (S.tool === 'gun') {
+    if (S.toolCd <= 0) {
+      S.toolCd = 0.5;
+      S.swing = 0.6;
+      gunSound();
+      muzzle.intensity = 18;
+      const m = shootTarget();
+      if (m) { damageMonster(m, 30); noiseFx(0.05, 4200, 0.12); }
+    }
   }
 }
 function damageMonster(m, dmg) {
@@ -991,6 +1020,7 @@ function updateMonsters(dt) {
     }
     const ty = MTYPES[m.type];
     let sp = m.speedBase + Math.min(3.6, S.t/100) * (m.type === 'brute' || m.type === 'boss' ? 0.3 : 1);
+    sp *= 1 - 0.3*dayLight();
     if (S.flash && S.bat > 0 && d < 30) {
       const dot = (dx/d)*camF.x + (dz/d)*camF.z;
       if (dot > 0.90) sp *= (1 - 0.58*ty.fear);
@@ -1125,8 +1155,25 @@ const sawGroup = new THREE.Group();
   hand.position.set(0, -0.12, 0.26);
   sawGroup.add(hand);
 }
-viewGroup.add(fistGroup); viewGroup.add(axeGroup); viewGroup.add(sawGroup);
-axeGroup.visible = false; sawGroup.visible = false;
+const gunGroup = new THREE.Group();
+{
+  const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.4), vMetal);
+  barrel.position.set(0, 0.06, -0.18);
+  gunGroup.add(barrel);
+  const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.09, 8), vMetal);
+  drum.rotation.x = Math.PI/2; drum.position.set(0, 0.02, 0.02);
+  gunGroup.add(drum);
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.2, 0.1), matTrunk);
+  grip.position.set(0, -0.12, 0.1); grip.rotation.x = -0.35;
+  gunGroup.add(grip);
+  const hand = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.13, 0.16), vSkin);
+  hand.position.set(0, -0.13, 0.18);
+  gunGroup.add(hand);
+}
+const muzzle = new THREE.PointLight(0xffc36b, 0, 10, 1.5);
+muzzle.position.set(0, 0.06, -0.55); gunGroup.add(muzzle);
+viewGroup.add(fistGroup); viewGroup.add(axeGroup); viewGroup.add(sawGroup); viewGroup.add(gunGroup);
+axeGroup.visible = false; sawGroup.visible = false; gunGroup.visible = false;
 function updateViewmodel(dt) {
   const show = !player.veh && S.phase === 'play';
   viewGroup.visible = show;
@@ -1134,7 +1181,8 @@ function updateViewmodel(dt) {
   fistGroup.visible = S.tool === 'none';
   axeGroup.visible = S.tool === 'axe';
   sawGroup.visible = S.tool === 'saw';
-  const grp = S.tool === 'axe' ? axeGroup : S.tool === 'saw' ? sawGroup : fistGroup;
+  gunGroup.visible = S.tool === 'gun';
+  const grp = S.tool === 'axe' ? axeGroup : S.tool === 'saw' ? sawGroup : S.tool === 'gun' ? gunGroup : fistGroup;
   if (S.swing > 0) S.swing = Math.max(0, S.swing - dt*4);
   const sw = S.swing > 0 ? Math.sin((1 - S.swing) * Math.PI) : 0;
   const walking = player.speed > 1 && !player.veh;
@@ -1144,6 +1192,30 @@ function updateViewmodel(dt) {
   grp.position.z = -sw*0.25;
   viewGroup.rotation.y = Math.sin(S.t*(player.speed > 7 ? 6 : 3.4))*0.02*(walking?1:0);
   viewGroup.position.y = -0.38 + Math.abs(Math.sin(S.t*(player.speed > 7 ? 6 : 3.4)))*0.02;
+  muzzle.intensity = Math.max(0, muzzle.intensity - dt*160);
+}
+
+// ============================== DAY/NIGHT ==============================
+const cSkyN = new THREE.Color(0x02050a), cSkyD = new THREE.Color(0x93a9c4);
+const cGrN = new THREE.Color(0x11220f), cGrD = new THREE.Color(0x3d5c2e);
+const cLtN = new THREE.Color(0x9db4d8), cLtD = new THREE.Color(0xffd9a0);
+function dayLightAt(t) { return Math.pow(0.5 + 0.5*Math.sin(2*Math.PI*t/240), 2); }
+function dayLight() { return dayLightAt(S.t); }
+function updateDayNight() {
+  const f = dayLight();
+  const isDay = f > 0.4;
+  scene.background.lerpColors(cSkyN, cSkyD, f);
+  scene.fog.color.copy(scene.background);
+  scene.fog.density = 0.021 - 0.012*f;
+  hemi.intensity = 0.5 + 0.62*f;
+  moonLight.intensity = 0.3 + 0.55*f;
+  moonLight.color.lerpColors(cLtN, cLtD, f);
+  stars.visible = f < 0.55;
+  moon.visible = f < 0.5;
+  sun.visible = f > 0.5;
+  ground.material.color.lerpColors(cGrN, cGrD, f);
+  if (S.t > 4 && isDay !== S.lastDay) toast(isDay ? '☀ РАССВЕТ! Твари слабеют' : '🌙 НОЧЬ. Твари быстрее и злее');
+  S.lastDay = isDay;
 }
 
 // ============================== ITEMS (ПОДБОР) ==============================
@@ -1288,6 +1360,10 @@ function updateHUD(nearestM) {
   $('distEl').textContent = Math.floor(S.dist);
   $('choppedEl').textContent = S.chopped;
   $('killsEl').textContent = S.kills;
+  const isDay = dayLight() > 0.4;
+  let rem = 0;
+  for (let f2 = 1; f2 <= 240; f2++) { if ((dayLightAt(S.t + f2) > 0.4) !== isDay) { rem = f2; break; } }
+  $('dayEl').textContent = (isDay ? '☀ ДЕНЬ: ' : '🌙 НОЧЬ: ') + fmt(rem);
   $('mNearEl').textContent = monsters.filter(m => m.dying === undefined && m.pos.distanceTo(player.pos) < 25).length;
   const veh = player.veh;
   $('vehicle').style.display = veh ? 'block' : 'none';
@@ -1319,6 +1395,7 @@ function updateHUD(nearestM) {
       : nearestVeh.state.broken ? 'Велик сломан — нужен 🔧 ключ (E чинит)' : 'E — сесть на велик 🚲';
   } else if (S.tool === 'axe' && nearestTreeAhead()) pr = 'ЛКМ — рубить дерево 🪓';
   else if (S.tool === 'saw' && S.sawFuel > 0 && nearestTreeAhead()) pr = 'ЛКМ (держать) — пилить ⛓';
+  else if (S.tool === 'gun' && shootTarget()) pr = 'ЛКМ — выстрел 🔫';
   else if (nearestMonsterAhead()) pr = 'ЛКМ — бить тварь!';
   $('prompt').textContent = pr;
 }
@@ -1380,6 +1457,7 @@ function loop() {
     if (S.dmgCd > 0) S.dmgCd -= dt;
     if (S.hornCd > 0) S.hornCd -= dt;
     if (!(player.veh && player.veh.kind === 'car') && S.shake > 0) S.shake = Math.max(0, S.shake - dt*2.5);
+    updateDayNight();
     updateChunks();
     updatePlayer(dt);
     const nearestM = updateMonsters(dt);

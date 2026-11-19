@@ -168,7 +168,7 @@ const ground = new THREE.Mesh(
 );
 ground.rotation.x = -Math.PI/2;
 scene.add(ground);
-const flash = new THREE.SpotLight(0xfff3cf, 0, 90, 0.48, 0.4, 1.0);
+const flash = new THREE.SpotLight(0xfff3cf, 0, 115, 0.55, 0.35, 0.85);
 scene.add(flash); scene.add(flash.target);
 
 // ============================== AUDIO ==============================
@@ -355,29 +355,38 @@ function makeHouse(h) {
 }
 function makeCarMesh(v) {
   const g = new THREE.Group();
+  const b = new THREE.Group();
+  b.rotation.y = Math.PI/2;
+  g.add(b);
   const col = [0x5b2333, 0x24463a, 0x3d3d52, 0x5c4a1e][Math.floor(Math.random()*4)];
   const body = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.75, 2), new THREE.MeshStandardMaterial({ color:col, roughness:0.6 }));
-  body.position.y = 0.85; g.add(body);
+  body.position.y = 0.85; b.add(body);
   const cab = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.8, 1.85), new THREE.MeshStandardMaterial({ color:0x111a20, roughness:0.25, metalness:0.4 }));
-  cab.position.set(-0.1, 1.55, 0); g.add(cab);
+  cab.position.set(-0.1, 1.55, 0); b.add(cab);
   const wg = new THREE.CylinderGeometry(0.45, 0.45, 0.3, 10);
   const wm = new THREE.MeshStandardMaterial({ color:0x111111 });
   for (const [x, z] of [[1.5,1], [1.5,-1], [-1.5,1], [-1.5,-1]]) {
-    const w = new THREE.Mesh(wg, wm); w.rotation.x = Math.PI/2; w.position.set(x, 0.45, z); g.add(w);
+    const w = new THREE.Mesh(wg, wm); w.rotation.x = Math.PI/2; w.position.set(x, 0.45, z); b.add(w);
   }
   const lm = new THREE.MeshStandardMaterial({ color:0x222222, emissive:0xfff0b0, emissiveIntensity:0.6, fog:false });
-  for (const z of [0.65, -0.65]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.22,0.3), lm); l.position.set(2.21, 0.9, z); g.add(l); }
+  for (const z of [0.65, -0.65]) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.22,0.3), lm); l.position.set(2.21, 0.9, z); b.add(l); }
+  for (const z of [0.6, -0.6]) {
+    const hl = new THREE.SpotLight(0xfff2cc, 0, 80, 0.5, 0.45, 0.9);
+    hl.position.set(2.3, 0.95, z); hl.name = 'hl'; b.add(hl);
+    const tgt = new THREE.Object3D(); tgt.position.set(18, 0, z*2.2); b.add(tgt);
+    hl.target = tgt;
+  }
   const im = new THREE.MeshStandardMaterial({ color:0x14181c, roughness:0.9 });
   const dash = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, 1.8), im);
-  dash.position.set(1.05, 1.3, 0); g.add(dash);
+  dash.position.set(1.05, 1.3, 0); b.add(dash);
   const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.045, 8, 20), new THREE.MeshStandardMaterial({ color:0x0a0a0a, roughness:0.6 }));
-  wheel.position.set(0.55, 1.35, 0); wheel.rotation.y = Math.PI/2; wheel.name = 'wheel'; g.add(wheel);
+  wheel.position.set(0.55, 1.35, 0); wheel.rotation.y = Math.PI/2; wheel.name = 'wheel'; b.add(wheel);
   for (const z of [0.55, -0.55]) {
     const seat = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, 0.15), im);
-    seat.position.set(-0.8, 1.0, z); g.add(seat);
+    seat.position.set(-0.8, 1.0, z); b.add(seat);
   }
   const roofIn = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.08, 1.85), im);
-  roofIn.position.set(-0.1, 1.98, 0); g.add(roofIn);
+  roofIn.position.set(-0.1, 1.98, 0); b.add(roofIn);
   g.position.set(v.x, 0, v.z); g.rotation.y = v.yaw;
   return g;
 }
@@ -821,9 +830,12 @@ function updatePlayer(dt) {
 function stepSound() { noiseFx(0.09, 180 + Math.random()*120, 0.13); }
 
 function syncVehicleMeshes() {
+  const riddenCar = player.veh && player.veh.kind === 'car' ? player.veh.id : null;
   for (const [id, mesh] of vehicleMeshes) {
     const st = vehicleStates.get(id);
     if (!st) continue;
+    const hlOn = id === riddenCar && st.fuel > 0 && st.hp > 0;
+    mesh.traverse(o => { if (o.isSpotLight && o.name === 'hl') o.intensity = hlOn ? 9 : 0; });
     if (player.veh && player.veh.id === id) {
       mesh.position.set(player.pos.x, 0, player.pos.z);
       mesh.rotation.y = player.yaw;
@@ -1142,7 +1154,7 @@ function updateCamera(dt) {
   camera.position.set(player.pos.x + sx, player.pos.y + sy, player.pos.z + sx);
   camera.rotation.set(player.pitch, player.yaw, 0);
   const flashing = S.flash && S.bat > 0;
-  flash.intensity = flashing ? 5.5 : 0;
+  flash.intensity = flashing ? 9.5 : 0;
   if (flashing) {
     camForwardXZ();
     flash.position.copy(camera.position);

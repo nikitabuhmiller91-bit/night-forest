@@ -1306,6 +1306,7 @@ function loop() {
     if (S.hornCd > 0) S.hornCd -= dt;
     if (!(player.veh && player.veh.kind === 'car') && S.shake > 0) S.shake = Math.max(0, S.shake - dt*2.5);
     updateChunks();
+    updatePlayer(dt);
     const nearestM = updateMonsters(dt);
     spawnLoop(dt);
     updateItems(dt);

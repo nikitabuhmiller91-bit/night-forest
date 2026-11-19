@@ -729,7 +729,7 @@ function updatePlayer(dt) {
     const st = player.veh.state;
     const wrecked = st.hp <= 0;
     const noFuel = st.fuel <= 0;
-    const steerTarget = str * 0.5;
+    const steerTarget = -str * 0.5;
     carS.steer += (steerTarget - carS.steer) * Math.min(1, dt*6);
     const sinH = -Math.sin(player.yaw), cosH = -Math.cos(player.yaw);
     let vF = carS.vx*sinH + carS.vz*cosH;

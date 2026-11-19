@@ -232,7 +232,7 @@ const S = { phase:'menu', t:0, hp:100, st:100, bat:100, flash:false,
             wood:0, axes:0, saws:0, sawFuel:0, cans:0, wrench:1,
             tool:'none', toolCd:0, dist:0, stepAcc:0,
             spawnT:9, dmgCd:0, chopped:0, kills:0, bossT:300,
-            shake:0, held:false };
+            shake:0, held:false, swing:0 };
 const player = { pos:new THREE.Vector3(0, 1.7, 0), yaw:0.6, pitch:0, veh:null, speed:0 };
 const carS = { vx:0, vz:0, steer:0, hitCd:0 };
 const keys = {};
@@ -932,6 +932,7 @@ function updateTools(dt) {
   } else if (S.tool === 'axe') {
     if (S.toolCd <= 0) {
       S.toolCd = 0.55;
+      S.swing = 1;
       axeThunk();
       const mm = nearestMonsterAhead();
       if (mm) damageMonster(mm, 20);
@@ -1081,6 +1082,68 @@ function spawnLoop(dt) {
       S.shake = 1;
     }
   }
+}
+
+// ============================== VIEWMODEL (РУКИ) ==============================
+const viewGroup = new THREE.Group();
+viewGroup.position.set(0.42, -0.38, -0.75);
+camera.add(viewGroup);
+scene.add(camera);
+const vSkin = new THREE.MeshStandardMaterial({ color:0x8a6f5c, roughness:0.9 });
+const vMetal = new THREE.MeshStandardMaterial({ color:0xb0bec5, roughness:0.35, metalness:0.5 });
+const vOrange = new THREE.MeshStandardMaterial({ color:0xff7043, roughness:0.5 });
+const fistGroup = new THREE.Group();
+{
+  const palm = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 0.2), vSkin);
+  palm.position.set(0, -0.05, 0);
+  fistGroup.add(palm);
+}
+const axeGroup = new THREE.Group();
+{
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.62, 6), matTrunk);
+  handle.rotation.x = 0.5; handle.position.set(0, 0.1, 0.12);
+  axeGroup.add(handle);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.16, 0.22), vMetal);
+  head.position.set(0, 0.34, -0.06);
+  axeGroup.add(head);
+  const hand = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.13, 0.18), vSkin);
+  hand.position.set(0, -0.06, 0.2);
+  axeGroup.add(hand);
+}
+const sawGroup = new THREE.Group();
+{
+  const case0 = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.24, 0.4), vOrange);
+  case0.position.set(0, -0.05, 0.1);
+  sawGroup.add(case0);
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.55), vMetal);
+  bar.position.set(0, 0.05, -0.35);
+  sawGroup.add(bar);
+  const chain = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.14, 0.58), new THREE.MeshStandardMaterial({ color:0x333333, roughness:0.8 }));
+  chain.position.set(0, 0.05, -0.35);
+  sawGroup.add(chain);
+  const hand = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.13, 0.18), vSkin);
+  hand.position.set(0, -0.12, 0.26);
+  sawGroup.add(hand);
+}
+viewGroup.add(fistGroup); viewGroup.add(axeGroup); viewGroup.add(sawGroup);
+axeGroup.visible = false; sawGroup.visible = false;
+function updateViewmodel(dt) {
+  const show = !player.veh && S.phase === 'play';
+  viewGroup.visible = show;
+  if (!show) return;
+  fistGroup.visible = S.tool === 'none';
+  axeGroup.visible = S.tool === 'axe';
+  sawGroup.visible = S.tool === 'saw';
+  const grp = S.tool === 'axe' ? axeGroup : S.tool === 'saw' ? sawGroup : fistGroup;
+  if (S.swing > 0) S.swing = Math.max(0, S.swing - dt*4);
+  const sw = S.swing > 0 ? Math.sin((1 - S.swing) * Math.PI) : 0;
+  const walking = player.speed > 1 && !player.veh;
+  const sawRun = S.tool === 'saw' && S.sawFuel > 0 && S.held;
+  grp.rotation.x = -sw*1.5 + Math.sin(S.t*7.5)*0.05*(walking?1:0) + (sawRun ? rand(-0.02, 0.02) : 0);
+  grp.rotation.z = sw*0.4;
+  grp.position.z = -sw*0.25;
+  viewGroup.rotation.y = Math.sin(S.t*(player.speed > 7 ? 6 : 3.4))*0.02*(walking?1:0);
+  viewGroup.position.y = -0.38 + Math.abs(Math.sin(S.t*(player.speed > 7 ? 6 : 3.4)))*0.02;
 }
 
 // ============================== ITEMS (ПОДБОР) ==============================
@@ -1324,6 +1387,7 @@ function loop() {
     updateItems(dt);
     updateTools(dt);
     updateCamera(dt);
+    updateViewmodel(dt);
     updateNearestVeh();
     drawRadar();
     updateHUD(nearestM);

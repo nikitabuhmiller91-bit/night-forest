@@ -1,0 +1,85 @@
+:root{
+  --bg:#0d1117; --panel:#161b23; --panel2:#1d242e; --border:#2a323d;
+  --text:#e6e9ee; --muted:#8b95a1; --accent:#4e8cff; --accent2:#37d0b0;
+  --up:#2ecc71; --down:#ff5e5e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,Arial,sans-serif;line-height:1.5}
+.container{max-width:1100px;margin:0 auto;padding:0 16px}
+a{color:var(--accent)}
+h2{margin:34px 0 6px;font-size:1.3rem}
+h2 small{color:var(--accent2);font-size:.75em;font-weight:500}
+.hint{color:var(--muted);font-size:.9rem;margin-top:0}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px}
+
+.site-header{background:linear-gradient(120deg,#101828,#0d2030 60%,#0c2b26);border-bottom:1px solid var(--border);padding:26px 0 22px}
+.site-header h1{margin:0;font-size:1.8rem}
+.logo{filter:drop-shadow(0 0 6px rgba(78,140,255,.6))}
+.subtitle{color:var(--muted);margin:6px 0 0}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;padding:16px;margin-top:20px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:130px;flex:1}
+.field label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+select,input[type=search],input[type=number]{
+  background:var(--panel2);color:var(--text);border:1px solid var(--border);
+  border-radius:8px;padding:9px 10px;font-size:.95rem;outline:none;width:100%;
+}
+select:focus,input:focus{border-color:var(--accent)}
+.btn{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;
+  padding:9px 14px;font-size:1.1rem;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+#swap{flex:0 0 auto}
+
+.convert{margin-top:14px;padding:18px 20px;text-align:center}
+.convert-result{font-size:1.35rem}
+.convert-result b{color:var(--accent2)}
+
+#status{margin-top:12px;color:var(--muted);font-size:.9rem}
+
+.table-wrap{margin-top:12px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+thead th{position:sticky;top:0;background:var(--panel);text-align:left;color:var(--muted);
+  font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em;
+  padding:12px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:9px 14px;border-bottom:1px solid #20262f;white-space:nowrap}
+tbody tr:hover{background:var(--panel2)}
+td.flag{font-size:1.25rem;width:40px}
+td.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+td.empty{color:var(--muted);text-align:center;padding:30px}
+
+#map{height:480px;margin-top:12px;z-index:1}
+.map-info{
+  background:rgba(13,17,23,.92);border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;color:var(--text);font-size:.85rem;max-width:280px;line-height:1.45;
+  box-shadow:0 4px 14px rgba(0,0,0,.4);
+}
+.legend{background:rgba(13,17,23,.92);border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;font-size:.78rem;line-height:1.7}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:7px;vertical-align:-2px}
+.legend-title{font-weight:700;margin-bottom:4px}
+.leaflet-container{background:#0b0f14}
+
+.bank-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:12px}
+.bank{padding:16px 18px}
+.bank-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.bank h3{margin:0;font-size:1.05rem}
+.bank a{font-size:.8rem;text-decoration:none}
+.bank-sub{color:var(--muted);font-size:.8rem;margin:4px 0 10px}
+.bank .loading,.err{color:var(--muted);font-size:.85rem}
+.err{color:var(--down)}
+table.mini{font-size:.9rem}
+table.mini td{padding:6px 4px;border-bottom:1px solid #20262f}
+table.mini td.val{text-align:right;font-variant-numeric:tabular-nums}
+table.mini td.chg{width:80px;text-align:right;font-size:.8rem}
+.chg.up{color:var(--up)}
+.chg.down{color:var(--down)}
+
+footer{margin-top:44px;border-top:1px solid var(--border);padding:20px 0 30px;color:var(--muted);font-size:.82rem}
+footer p{margin:4px 0}
+
+@media(max-width:640px){
+  .site-header h1{font-size:1.4rem}
+  #map{height:360px}
+  .toolbar .field{min-width:calc(50% - 8px)}
+}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мировая биржа валют — курсы всех валют мира</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <h1><span class="logo">💰</span> Мировая биржа валют</h1>
+    <p class="subtitle">Курсы всех валют мира из официальных источников. Только информация — без переводов, покупки и продажи.</p>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="toolbar card">
+    <div class="field">
+      <label for="base-select">Базовая валюта</label>
+      <select id="base-select"></select>
+    </div>
+    <div class="field">
+      <label for="search">🔍 Поиск</label>
+      <input id="search" type="search" placeholder="Код или название: EUR, рубль, иена...">
+    </div>
+    <div class="field">
+      <label for="sort">Сортировка</label>
+      <select id="sort">
+        <option value="code">По коду</option>
+        <option value="rate-asc">Дорогие сверху</option>
+        <option value="rate-desc">Дешёвые сверху</option>
+        <option value="name">По названию</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="amount">Сколько конвертировать</label>
+      <input id="c-amount" type="number" step="any" min="0" value="100">
+    </div>
+    <div class="field">
+      <label for="c-from">Из 💱</label>
+      <select id="c-from"></select>
+    </div>
+    <button id="swap" class="btn" title="Поменять валюты местами">⇄</button>
+    <div class="field">
+      <label for="c-to">В 💱</label>
+      <select id="c-to"></select>
+    </div>
+  </section>
+
+  <section class="convert card">
+    <div class="convert-result" id="c-result">Загрузка курсов…</div>
+  </section>
+
+  <section>
+    <h2>📊 Курсы валют мира <small id="base-badge">за 1 USD</small></h2>
+    <p class="hint">Всего валют: <b id="count">…</b></p>
+    <div class="table-wrap card">
+      <table id="rates-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Код</th>
+            <th>Валюта</th>
+            <th id="base-col">1 USD =</th>
+            <th id="unit-col">1 единица =</th>
+          </tr>
+        </thead>
+        <tbody id="rates-body">
+          <tr><td colspan="5" class="empty">Загрузка…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>🗺 Карта мира: местная валюта за 1 <span id="map-base">USD</span></h2>
+    <p class="hint">Цвет страны показывает, сколько единиц местной валюты дают за 1 единицу базовой валюты (логарифмическая шкала). Наведи курсор — увидишь точный курс.</p>
+    <div id="map" class="card"></div>
+  </section>
+
+  <section>
+    <h2>🏦 Банки мира (центральные банки)</h2>
+    <p class="hint">Сколько валюта стоит в определённом банке — официальный курс центробанка страны. Коммерческие банки добавляют свою маржу, поэтому их наличные и безналичные курсы отличаются от этих.</p>
+    <div id="banks" class="bank-grid"></div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>Источники: open.er-api.com • Европейский центральный банк (frankfurter.dev) • ЦБ РФ (cbr-xml-daily.ru) • НБП Польши (api.nbp.pl) • ЧНБ Чехии (api.cnb.cz)</p>
+    <p>Сайт носит информационный характер, операций с валютой не проводит. Данные обновляются на источниках раз в сутки или несколько раз в день.</p>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/banks.js"></script>
+</body>
+</html>
